@@ -57,6 +57,24 @@ onTransact
 Proxy#getBookList
 这个方法运行在客户端,当客户端远程调用此方法时,首先创建该方法所需要的输入性Parcel对象_data,输出型Parcel对象_reply和返回值对象List,然后把该方法的参数信息写入_data中,接着调用transact方法来发起RPC(远程调用)请求,同时当前线程挂起;然后服务端的onTransact方法会被调用,知道RPC过程返回后,当前线程继续执行,并从_reply中取出RPC过程的返回结果;最后返回_reply中的数据
 
+![Binder](http://oidd437cq.bkt.clouddn.com/image/notesBinder%20%281%29.png)
+
+* IPC方式
+例:A进程正在进行一个计算，计算完成后它要启动B进程的一个组件把计算结果传递给B进程,可是遗憾的是这个计算结果并不支持放入Bundle中,因此无法通过Intent来传输,这个时候如果用其它IPC方式又略显复杂,可以考虑如下方式:通过Intent启动B进程的一个Service组件(比如IntentService),让Service在后台进行计算,计算完毕后再启动B进程真正要启动的目标组件,由于Service也在B进程中,所以目标组件就可以直接获取计算结果,这样一来就解决了跨进程问题,这种方式的核心思想在于将原本需要在A进程的计算任务转移到B进程的后台Service中去执行,这样就成功避免了进程间通信问题,而且只用了很小的代价.
+
+```
+1.使用文件共享
+两个进程通过读/写同一个文件来交换数据  适合在对数据同步要求不高的进程之间进行通信,并且要妥善处理并发读/写的问题
+
+2.使用Messenger
+Messenger译为信使,通过它可以在不同进程中传递Message对象,在Message中传递数据就可以实现进程间的数据传递了,Messenger是一种轻量级的IPC方案,它的底层实现是AIDL.
+实现一个Messenger有如下几部:
+服务端进程:
+首先,我们需要在服务端创建一个Service来处理客户端的连接请求,同事创建一个Handler并通过它来创建一个Messenger对象,然后在Service的onBind中返回这个Messenger对象底层的Binder即可.
+```
+
+
+
 
 
  
